@@ -43,6 +43,11 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
     }
   };
 
+  $scope.deleteChatMessage = function(id, $index){
+    $scope.messages.splice($index,1);
+    socket.emit('remove_message', {id:id});
+  };
+
   $scope.setTargetName = function(name){
     $scope.message += " @" + name + "さん ";
   };
@@ -58,28 +63,29 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
       }
       $scope.logins.push(login);
     });
- 
-    /*
-    if ($('#login_list').html() != out_list){
-      $('#login_list').html(out_list);
-      $('#login_list').fadeIn();
-      suggest_start(login_list);
-    */
   });
 
   socket.on('message_own', function(data) {
-    data.id = get_id(data.name);
+    data.id = data._id;
     data.is_own = true;
-    data.name_class = "login-name" + get_color_id_by_name_id(data.id);
+    var css = get_msg_css(data);
+    data.body_class = css.body;
+    data.date_class = css.date;
+    data.name_class = css.name;
+    data.msg_class = css.msg;
     data.msg = decorate_msg(data.msg);
     $scope.messages.unshift(data);
     newest_mark();
   });
 
   socket.on('message', function(data) {
+    data.id = data._id;
     data.is_own = false;
-    data.id = get_id(data.name);
-    data.name_class = "login-name" + get_color_id_by_name_id(data.id);
+    var css = get_msg_css(data);
+    data.body_class = css.body;
+    data.date_class = css.date;
+    data.name_class = css.name;
+    data.msg_class = css.msg;
     data.msg = decorate_msg(data.msg);
     $scope.messages.unshift(data);
     newest_mark();
@@ -88,66 +94,29 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
   socket.on('latest_log', function(msgs) {
     $scope.messages = [];
     angular.forEach(msgs, function(msg){
+      msg.id = msg._id;
       msg.is_own = msg.name == $scope.name;
-      msg.id = get_id(msg.name);
-      msg.name_class = "login-name" + get_color_id_by_name_id(msg.id);
+      var css = get_msg_css(msg);
+      msg.body_class = css.body;
+      msg.date_class = css.date;
+      msg.name_class = css.name;
+      msg.msg_class = css.msg;
       msg.msg = decorate_msg(msg.msg);
       $scope.messages.push(msg);
     });
   });
 
   socket.on('remove_message', function(data) {
-    $('#msg_' + data.id).fadeOut();
+    angular.forEach($scope.messages, function(msg,index){
+      if (msg.id == data.id){
+        $scope.messages.splice(index,1);
+      }
+    });
   });
-
 
   $(window).on("blur focus", function(e) {
     newest_off();
   });
-
-  function append_msg(data){
-    //TODO: System メッセージを非表示にする。
-    //      切り替え可能にするかは検討する。
-    if (data.name == "System") { return };
-    if (exist_msg(data)){ return };
-
-    var msg = get_msg_html(data);
-
-    $('#list').append(msg.li.addClass(msg.css));
-    msg.li.fadeIn();
-  };
-
-  function prepend_own_msg(data){
-    if (exist_msg(data)){ return };
-    var msg = get_msg_html(data);
-
-    $('#list').prepend(msg.li);
-    msg.li.addClass("text-highlight",0);
-    msg.li.slideDown('fast',function(){
-      msg.li.switchClass("text-highlight", msg.css, 500);
-    });
-  };
-
-  function send_remove_msg(id){
-    var socket = io.connect('/');
-
-    socket.emit('remove_message', {id:id});
-  }
-
-  function prepend_msg(data){
-    //TODO: System メッセージを非表示にする。
-    //      切り替え可能にするかは検討する。
-    if (data.name == "System") { return }
-    if (exist_msg(data)){ return };
-
-    var msg = get_msg_html(data);
-
-    $('#list').prepend(msg.li);
-    msg.li.addClass("text-highlight",0);
-    msg.li.slideDown('fast',function(){
-      msg.li.switchClass("text-highlight", msg.css, 500);
-    });
-  };
 
   function newest_mark(){
     if ("message" == $(':focus').attr('id')){ newest_off(); return; }
@@ -160,62 +129,50 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
     document.title = TITLE_ORG;
   }
 
-  function exist_msg(data){
-    if (data.msg == undefined) { data.msg = ""; }
-    var id = '#msg_' + data._id.toString();
-    return $(id).size() > 0;
-  }
-
-  function get_msg_html(data){
-    if ( data.name == login_name ){
+  function get_msg_css(data){
+    if ( data.name == $scope.name ){
       return {
-        li: get_msg_li_html(data).html(get_msg_body(data) + '<a class="remove_msg">x</a><span class="own_msg_date">' + data.date + '</span></td></tr></table>'),
-        css: "own_msg"
+        msg: "",
+        name: "login-name" + get_color_id_by_name_id(get_id(data.name)),
+        body: "own_msg",
+        date: "own_msg_date"
       };
-    } else if (include_target_name(data.msg,login_name)){
+    } else if (include_target_name(data.msg,$scope.name)){
       return {
-        li: get_msg_li_html(data).html(get_msg_body(data) + ' <span class="target_msg_date">' + data.date + '</span></td></tr></table>'),
-          css: "target_msg"
+        msg: "",
+        name: "login-name" + get_color_id_by_name_id(get_id(data.name)),
+        body: "target_msg",
+        date: "target_msg_date"
+      };
+    }else if ( data.name == "System" ){
+      return {
+        name: "login-name-system",
+        msg:  "msg_ext",
+        body: "",
+        date: "date"
+      };
+    }else if ( data.ext == true ){
+      return {
+        name: "login-name-ext",
+        msg:  "msg_ext",
+        body: "",
+        date: "date"
+      };
+    }else if ( data.name == "Pomo" ){
+      return {
+        name: "login-name-pomosys",
+        msg:  "msg_pomo",
+        body: "",
+        date: "date"
       };
     }else{
       return {
-        li: get_msg_li_html(data).html(get_msg_body(data) + ' <span class="date">' + data.date + '</span></td></tr></table>'),
-          css: null
+        msg: "",
+        name: "login-name" + get_color_id_by_name_id(get_id(data.name)),
+        body: "",
+        date: "date"
       };
     }
-  }
-
-  function get_msg_li_html(data){
-    if ( data._id != undefined ){
-      return $('<li/>').attr('style','display:none').attr('id','msg_' + data._id.toString()).attr('data-id', data._id.toString());
-    }else{
-      return $('<li/>').attr('style','display:none');
-    }
-  }
-
-  function get_msg_body(data){
-    var date = new Date();
-    var id = date.getTime();
-
-    var name_class = "login-name";
-    var msg_class = "msg";
-
-    data.id = get_id(data.name)
-
-      if ( data.name == "System" ){
-        name_class = "login-name-system";
-        msg_class = "msg_ext"
-      }else if ( data.ext == true ){
-        name_class = "login-name-ext";
-        msg_class = "msg_ext"
-      }else if ( data.name == "Pomo" ){
-        name_class = "login-name-pomosys";
-        msg_class = "msg_pomo"
-      }else{
-        name_class = "login-name" + get_color_id_by_name_id(data.id);
-      }
-
-    return '<table><tr><td nowrap valign="top"><span class="login-name-base ' + name_class + '">' + data.name + '</span></td><td width="100%"><span class="msg_text ' + msg_class + '">' + decorate_msg(data.msg) + '</span>';
   }
 
   function decorate_msg(msg){

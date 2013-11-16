@@ -113,9 +113,19 @@
           </form>
           <div id="chat_body" class="text-base-style">
             <ul id="list">
-              <li ng-repeat="message in messages">
-              <table><tr><td nowrap valign="top"><span ng-click="setTargetName(message.name)" class="login-name-base {{message.name_class}}">{{message.name}}</span></td><td width="100%"><span class="msg_text"><span ng-bind-html="message.msg"></span></span>
-                </td></tr></table>
+              <li ng-repeat="message in messages" class="{{message.body_class}}">
+              <table>
+                <tr>
+                  <td nowrap valign="top">
+                    <span ng-click="setTargetName(message.name)" class="login-name-base {{message.name_class}}">{{message.name}}</span>
+                  </td>
+                  <td width="100%">
+                    <span class="msg_text {{message.msg_class}}"><span ng-bind-html="message.msg"></span></span>
+                    <a ng-show="message.is_own" ng-click="deleteChatMessage(message.id, $index)" class="remove_msg">x</a>
+                    <span class="{{message.date_class}}">{{message.date}}</span>
+                  </td>
+                </tr>
+              </table>
               </li>
             </ul>
           </div>

@@ -18,7 +18,6 @@ var text_logs = [];
 var newest_count = 0;
 
 $(function() {
-  init_chat();
   init_sharememo();
   init_websocket();
 
@@ -41,15 +40,6 @@ $(function() {
   */
 
 });
-
-function init_chat(){
-  $('#list').on('click', '.remove_msg', function(){
-    var id = "#" + $(this).closest('li').attr('id');
-    var data_id = $(this).closest('li').data('id');
-    $(id).fadeOut();
-    send_remove_msg(data_id);
-  });
-}
 
 function init_sharememo(){
   for (var i = SHARE_MEMO_NUMBER; i > 1; i--){
