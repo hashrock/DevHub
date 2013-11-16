@@ -30,6 +30,8 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
     $('#message').focus(); //TODO: こんなところに focus 置いていいの？
   }
  
+  $scope.message = "";
+
   $scope.addChatMessage = function(){
     var name = $scope.name;
     var message = $scope.message;
@@ -39,6 +41,10 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
       socket.emit('message', {name:name, msg:message});
       $scope.message = "";
     }
+  };
+
+  $scope.setTargetName = function(name){
+    $scope.message += " @" + name + "さん ";
   };
 
   socket.on('list', function(login_list) {
@@ -58,20 +64,10 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
       $('#login_list').html(out_list);
       $('#login_list').fadeIn();
       suggest_start(login_list);
-
-      // add click event for each login names.
-      $('#login_list .login-elem').click(function(){
-        var name = $(this).children(".name").text();
-        $('#message').val($('#message').val() + " @" + name + "さん ");
-        $('#message').focus();
-      });
-    }
     */
   });
 
-
   socket.on('message_own', function(data) {
-    console.log(data);
     data.id = get_id(data.name);
     data.is_own = true;
     data.name_class = "login-name" + get_color_id_by_name_id(data.id);

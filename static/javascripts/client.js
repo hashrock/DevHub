@@ -49,11 +49,6 @@ function init_chat(){
     $(id).fadeOut();
     send_remove_msg(data_id);
   });
-  $('#list').on('click', '.login-name-base', function(){
-    var name = $(this).text();
-    $('#message').val($('#message').val() + " @" + name + "さん ");
-    $('#message').focus();
-  });
 }
 
 function init_sharememo(){

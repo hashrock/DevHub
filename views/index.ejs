@@ -89,7 +89,7 @@
           <img id="login_list_loader" src="/img/loader.gif"/>
           <div id="login_list">
             <nobr>
-            <span ng-repeat="login in logins" class="login-elem {{login.name_class}}">
+            <span ng-repeat="login in logins" ng-click="setTargetName(login.name)" class="login-elem {{login.name_class}}">
               <span>
                 <span class="name">{{login.name}}</span>
                 <span ng-show="login.place != ''" >@{{login.place}}</span>
@@ -114,7 +114,7 @@
           <div id="chat_body" class="text-base-style">
             <ul id="list">
               <li ng-repeat="message in messages">
-              <table><tr><td nowrap valign="top"><span class="login-name-base {{message.name_class}}">{{message.name}}</span></td><td width="100%"><span class="msg_text"><span ng-bind-html="message.msg"></span></span>
+              <table><tr><td nowrap valign="top"><span ng-click="setTargetName(message.name)" class="login-name-base {{message.name_class}}">{{message.name}}</span></td><td width="100%"><span class="msg_text"><span ng-bind-html="message.msg"></span></span>
                 </td></tr></table>
               </li>
             </ul>
