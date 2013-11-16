@@ -25,6 +25,7 @@ $(function() {
   var css_name = $.cookie(COOKIE_CSS_NAME) || CSS_DEFAULT_NAME;
   $("#devhub-style").attr('href','/stylesheets/' + css_name );
 
+  /*
   if ( $.cookie(COOKIE_NAME) == null ){
     setTimeout(function(){
       $('#name_in').modal("show");
@@ -37,10 +38,8 @@ $(function() {
     $('#name').val(login_name);
     $('#message').focus();
   }
+  */
 
-  $(window).on("blur focus", function(e) {
-    newest_off();
-  });
 });
 
 function init_chat(){
@@ -128,20 +127,6 @@ function init_websocket(){
   });
 
   // for chat
-  socket.on('message_own', function(data) {
-    prepend_own_msg(data);
-    newest_mark();
-  });
-
-  socket.on('message', function(data) {
-    prepend_msg(data);
-    newest_mark();
-  });
-
-  socket.on('remove_message', function(data) {
-    $('#msg_' + data.id).fadeOut();
-  });
-
   socket.on('list', function(login_list) {
     $('#login_list_loader').hide();
 
@@ -177,12 +162,7 @@ function init_websocket(){
     latest_login_list = login_list.sort(function(a,b){ return b.name.length - a.name.length });
   });
 
-  socket.on('latest_log', function(msgs) {
-    for ( var i = 0 ; i < msgs.length; i++){
-      append_msg(msgs[i])
-    }
-  });
-
+  /*
   $('#form').submit(function() {
     var name = $('#name').val();
     var message = $('#message').val();
@@ -195,6 +175,7 @@ function init_websocket(){
     }
     return false;
   });
+  */
 
   $(".code").autofit({min_height: CODE_MIN_HEIGHT});
 
@@ -733,11 +714,22 @@ function init_websocket(){
   });
 };
 
+function change_style(css_file){
+  //console.log("change to " + css_file );
+  $("#devhub-style").attr('href','/stylesheets/' + css_file);
+  $.cookie(COOKIE_CSS_NAME,css_file,{ expires: COOKIE_EXPIRES });
+}
+
+function get_color_id_by_name_id(id){
+  if(id == 0){ return 0; } // no exist user.
+  return id % LOGIN_COLOR_MAX + 1; // return 1 〜 LOGIN_COLOR_MAX
+}
+
 function suggest_start(list){
   var suggest_list = []
-  for (var i = 0; i < list.length; ++i){
-    suggest_list.push("@" + list[i].name + "さん");
-  }
+    for (var i = 0; i < list.length; ++i){
+      suggest_list.push("@" + list[i].name + "さん");
+    }
 
   if (suggest_obj == undefined){
     suggest_obj = new Suggest.LocalMulti("message", "suggest", suggest_list, {interval: 200, dispAllKey: false, prefix: true, highlight: true});
@@ -746,163 +738,4 @@ function suggest_start(list){
   }
 }
 
-function append_msg(data){
-  //TODO: System メッセージを非表示にする。
-  //      切り替え可能にするかは検討する。
-  if (data.name == "System") { return };
-  if (exist_msg(data)){ return };
-
-  var msg = get_msg_html(data);
-
-  $('#list').append(msg.li.addClass(msg.css));
-  msg.li.fadeIn();
-};
-
-function prepend_own_msg(data){
-  if (exist_msg(data)){ return };
-  var msg = get_msg_html(data);
-
-  $('#list').prepend(msg.li);
-  msg.li.addClass("text-highlight",0);
-  msg.li.slideDown('fast',function(){
-    msg.li.switchClass("text-highlight", msg.css, 500);
-  });
-};
-
-function send_remove_msg(id){
-  var socket = io.connect('/');
-
-  socket.emit('remove_message', {id:id});
-}
-
-function prepend_msg(data){
-  //TODO: System メッセージを非表示にする。
-  //      切り替え可能にするかは検討する。
-  if (data.name == "System") { return }
-  if (exist_msg(data)){ return };
-
-  var msg = get_msg_html(data);
-
-  $('#list').prepend(msg.li);
-  msg.li.addClass("text-highlight",0);
-  msg.li.slideDown('fast',function(){
-    msg.li.switchClass("text-highlight", msg.css, 500);
-  });
-};
-
-function newest_mark(){
-  if ("message" == $(':focus').attr('id')){ newest_off(); return; }
-  newest_count++;
-  document.title = "(" + newest_count + ") " + TITLE_ORG;
-}
-
-function newest_off(){
-  newest_count = 0;
-  document.title = TITLE_ORG;
-}
-
-function exist_msg(data){
-  if (data.msg == undefined) { data.msg = ""; }
-  var id = '#msg_' + data._id.toString();
-  return $(id).size() > 0;
-}
-
-function get_msg_html(data){
-  if ( data.name == login_name ){
-    return {
-      li: get_msg_li_html(data).html(get_msg_body(data) + '<a class="remove_msg">x</a><span class="own_msg_date">' + data.date + '</span></td></tr></table>'),
-      css: "own_msg"
-    };
-  } else if (include_target_name(data.msg,login_name)){
-    return {
-      li: get_msg_li_html(data).html(get_msg_body(data) + ' <span class="target_msg_date">' + data.date + '</span></td></tr></table>'),
-      css: "target_msg"
-    };
-  }else{
-    return {
-      li: get_msg_li_html(data).html(get_msg_body(data) + ' <span class="date">' + data.date + '</span></td></tr></table>'),
-      css: null
-    };
-  }
-}
-
-function get_msg_li_html(data){
-  if ( data._id != undefined ){
-    return $('<li/>').attr('style','display:none').attr('id','msg_' + data._id.toString()).attr('data-id', data._id.toString());
-  }else{
-    return $('<li/>').attr('style','display:none');
-  }
-}
-
-function get_msg_body(data){
-  var date = new Date();
-  var id = date.getTime();
-
-  var name_class = "login-name";
-  var msg_class = "msg";
-
-  data.id = get_id(data.name)
-
-  if ( data.name == "System" ){
-    name_class = "login-name-system";
-    msg_class = "msg_ext"
-  }else if ( data.ext == true ){
-    name_class = "login-name-ext";
-    msg_class = "msg_ext"
-  }else if ( data.name == "Pomo" ){
-    name_class = "login-name-pomosys";
-    msg_class = "msg_pomo"
-  }else{
-    name_class = "login-name" + get_color_id_by_name_id(data.id);
-  }
-
-  return '<table><tr><td nowrap valign="top"><span class="login-name-base ' + name_class + '">' + data.name + '</span></td><td width="100%"><span class="msg_text ' + msg_class + '">' + decorate_msg(data.msg) + '</span>';
-}
-
-function get_color_id_by_name_id(id){
-  if(id == 0){ return 0; } // no exist user.
-  return id % LOGIN_COLOR_MAX + 1; // return 1 〜 LOGIN_COLOR_MAX
-}
-
-function decorate_msg(msg){
-  var deco_msg = msg;
-
-  deco_msg = deco_login_name(deco_msg)
-  deco_msg = deco_msg.replace(/((https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+))/g,function(){ return '<a href="' + arguments[1] + '" target="_blank" >' + arguments[1] + '</a>' });
-  deco_msg = deco_msg.replace(/(SUCCESS|OK|YES)/, function(){ return ' <span class="label label-success">' + arguments[1] + '</span> '});
-  deco_msg = deco_msg.replace(/(FAILURE|NG|NO)/, function(){ return ' <span class="label label-important">' + arguments[1] + '</span> '});
-  deco_msg = deco_msg.replace(/[\(（](笑|爆|喜|嬉|楽|驚|泣|涙|悲|怒|厳|辛|苦|閃|汗|忙|急|輝)[\)）]/g, function(){ return '<span class="emo">' + arguments[1] + '</span>'});
-
-  return deco_msg;
-};
-
-function deco_login_name(msg){
-  var deco_msg = msg;
-  var name_reg = RegExp("(@)[ ]*.+?さん", "g");
-  deco_msg = deco_msg.replace( name_reg, function(){ return '<span class="label label-info">' + arguments[0] + '</span>'});
-  return deco_msg;
-}
-
-function include_target_name(msg,name){
-  var name_reg = RegExp("(@)[ ]*" + name + "( |　|さん|$)");
-  if (msg.match(name_reg)){
-    return true;
-  }
-  return false;
-}
-
-function get_id(name){
-  for(var i = 0; i < latest_login_list.length; ++i ){
-    if ( latest_login_list[i].name == name ){
-      return latest_login_list[i].id;
-    }
-  }
-  return 0;
-}
-
-function change_style(css_file){
-  //console.log("change to " + css_file );
-  $("#devhub-style").attr('href','/stylesheets/' + css_file);
-  $.cookie(COOKIE_CSS_NAME,css_file,{ expires: COOKIE_EXPIRES });
-}
 

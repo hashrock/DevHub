@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="DevHubApp">
   <head>
     <meta charset="utf-8">
     <title>DevHub <%= title_name %></title>
@@ -12,7 +12,10 @@
       <script type="text/javascript" src="/javascripts/html5.js"></script>
     <![endif]-->
 
+
     <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular-sanitize.min.js"></script>
     <script type="text/javascript" src="/javascripts/jquery-ui.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/javascripts/jquery.autofit.js"></script>
@@ -27,6 +30,7 @@
     <script type="text/javascript" src="/javascripts/jquery.caret.js"></script>
     <script type="text/javascript" src="/javascripts/difflib.js"></script>
     <script type="text/javascript" src="/javascripts/diffview.js"></script>
+    <script type="text/javascript" src="/javascripts/chat_controller.js"></script>
     <link href="/stylesheets/devhub.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="/stylesheets/emolett.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="/stylesheets/diffview.css" media="screen" rel="stylesheet" type="text/css" />
@@ -81,15 +85,15 @@
 
     <div class="container-fluid">
       <div class="row-fluid">
-        <div id="chat_area" class="span5">
+        <div id="chat_area" class="span5" ng-controller="ChatCtrl">
           <img id="login_list_loader" src="/img/loader.gif"/>
           <div id="login_list" style="display:none"></div>
-          <form id="form" class="form-inline">
+          <form id="form" class="form-inline" ng-submit="addChatMessage()">
             <table>
               <tr>
-                <td><input type="text" name="name" id="name" class="span1" placeholder="Name"/></td>
+                <td><input type="text" ng-model="name" name="name" id="name" class="span1" placeholder="Name"/></td>
                 <td style="width: 100%; padding: 0 10px 0 0;">
-                  <input type="text" name="message" id="message" style="width: 100%;" autocomplete="off" placeholder="Message"/>
+                  <input type="text" ng-model="message" name="message" id="message" style="width: 100%;" autocomplete="off" placeholder="Message"/>
                   <div id="suggest" style="display: none;"></div>
                 </td>
                 <td><input type="submit" value="Send" class="btn btn-small btn-primary"/></td>
@@ -98,7 +102,12 @@
             </table>
           </form>
           <div id="chat_body" class="text-base-style">
-            <ul id="list"></ul>
+            <ul id="list">
+              <li ng-repeat="message in messages">
+              <table><tr><td nowrap valign="top"><span class="login-name-base {{message.name_class}}">{{message.name}}</span></td><td width="100%"><span class="msg_text"><span ng-bind-html="message.msg"></span></span>
+                </td></tr></table>
+              </li>
+            </ul>
           </div>
         </div>
 
