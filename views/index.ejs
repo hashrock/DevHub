@@ -87,7 +87,17 @@
       <div class="row-fluid">
         <div id="chat_area" class="span5" ng-controller="ChatCtrl">
           <img id="login_list_loader" src="/img/loader.gif"/>
-          <div id="login_list" style="display:none"></div>
+          <div id="login_list">
+            <nobr>
+            <span ng-repeat="login in logins" class="login-elem {{login.name_class}}">
+              <span>
+                <span class="name">{{login.name}}</span>
+                <span ng-show="login.place != ''" >@{{login.place}}</span>
+                <span ng-show="login.pomo_min > 0" class="pomo-min"> {{login.pomo_min}}min</span>
+              </span><wbr>
+            </span>
+            </nobr>
+          </div>
           <form id="form" class="form-inline" ng-submit="addChatMessage()">
             <table>
               <tr>

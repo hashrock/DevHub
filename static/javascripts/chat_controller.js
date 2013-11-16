@@ -41,6 +41,35 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
     }
   };
 
+  socket.on('list', function(login_list) {
+    $('#login_list_loader').hide();
+    $scope.logins = [];
+    angular.forEach(login_list, function(login){
+      if ( login.pomo_min > 0 ){
+        login.name_class = "login-name-pomo";
+      }else{
+        login.name_class = "login-name" + get_color_id_by_name_id(login.id);
+      }
+      $scope.logins.push(login);
+    });
+ 
+    /*
+    if ($('#login_list').html() != out_list){
+      $('#login_list').html(out_list);
+      $('#login_list').fadeIn();
+      suggest_start(login_list);
+
+      // add click event for each login names.
+      $('#login_list .login-elem').click(function(){
+        var name = $(this).children(".name").text();
+        $('#message').val($('#message').val() + " @" + name + "さん ");
+        $('#message').focus();
+      });
+    }
+    */
+  });
+
+
   socket.on('message_own', function(data) {
     console.log(data);
     data.id = get_id(data.name);
@@ -74,6 +103,7 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
   socket.on('remove_message', function(data) {
     $('#msg_' + data.id).fadeOut();
   });
+
 
   $(window).on("blur focus", function(e) {
     newest_off();
@@ -220,14 +250,19 @@ DevHubApp.controller('ChatCtrl',['$scope','socket', function($scope,socket){
   }
 
   function get_id(name){
-    for(var i = 0; i < latest_login_list.length; ++i ){
-      if ( latest_login_list[i].name == name ){
-        return latest_login_list[i].id;
+    var id = 0;
+    angular.forEach($scope.logins, function(login){
+      if ( login.name == name ){
+        id = login.id;
       }
-    }
-    return 0;
+    });
+    return id;
   }
 
+  function get_color_id_by_name_id(id){
+    if (id == 0){ return 0; } // no exist user.
+    return id % LOGIN_COLOR_MAX + 1; // return 1 〜 LOGIN_COLOR_MAX
+  }
 
 }]);
 
