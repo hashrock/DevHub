@@ -154,7 +154,7 @@ function init_websocket(){
   }
 
   $('.share-memo').on('click','.sync-text', function(){
-    switchEditShareMemo(this);
+    switchEditShareMemo(this,0);
   });
 
   $('.share-memo').on('dblclick','pre tr', function(){
