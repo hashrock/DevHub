@@ -31,13 +31,15 @@
     <script type="text/javascript" src="/javascripts/difflib.js"></script>
     <script type="text/javascript" src="/javascripts/diffview.js"></script>
     <script type="text/javascript" src="/javascripts/chat_controller.js"></script>
+    <script type="text/javascript" src="/javascripts/perfect-scrollbar-0.4.5.with-mousewheel.min.js"></script>
     <link href="/stylesheets/devhub.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="/stylesheets/emolett.css" media="screen" rel="stylesheet" type="text/css" />
     <link href="/stylesheets/diffview.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/perfect-scrollbar-0.4.5.min.css" media="screen" rel="stylesheet" type="text/css" />
     <link id="devhub-style" href="/stylesheets/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
 
-  <body id="body-main" style="padding-top: 50px">
+  <body id="body-main" style="padding-top: 0px">
     <div class="modal hide" id="name_in">
       <div class="modal-header">
         <h3>DevHub</h3>
@@ -86,6 +88,7 @@
     <div class="container-fluid">
       <div class="row-fluid">
         <div id="chat_area" class="span5" ng-controller="ChatCtrl">
+          <div class="dummy-top-space"></div>
           <img id="login_list_loader" src="/img/loader.gif"/>
           <div id="login_list">
             <nobr>
@@ -131,7 +134,8 @@
           </div>
         </div>
 
-        <div id="memo_area" class="span7">
+        <div id="memo_area" class="span7 memo-area">
+          <div class="dummy-top-space"></div>
           <div id="share-memo">
             <div class="tabbable tabs-left">
               <ul class="nav nav-tabs">
@@ -158,15 +162,12 @@
               </div>
             </div>
           </div>
+          <footer>
+            <span>© 2012 Naoki KODAMA. All rights reserved.</span>
+          </footer>
         </div>
       </div>
     </div>
-
-    <footer>
-      <span>
-      © 2012 Naoki KODAMA. All rights reserved.
-      </span>
-    </footer>
   </body>
 </html>
 

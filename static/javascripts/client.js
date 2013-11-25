@@ -8,7 +8,7 @@ var COOKIE_EXPIRES = 365;
 var CSS_DEFAULT_NAME = "bootstrap.min.css";
 var TITLE_ORG = document.title;
 var CODE_MIN_HEIGHT = 700;
-var CODE_OUT_ADJUST_HEIGHT = 200;
+var CODE_OUT_ADJUST_HEIGHT = 100;
 var CODE_ADJUST_HEIGHT = 100;
 var SHARE_MEMO_NUMBER = 15;
 
@@ -18,6 +18,7 @@ var text_logs = [];
 var newest_count = 0;
 
 $(function() {
+  init_chat();
   init_sharememo();
   init_websocket();
 
@@ -41,25 +42,35 @@ $(function() {
 
 });
 
+function init_chat(){
+  $('#chat_area').perfectScrollbar({
+    wheelSpeed: 30
+  });
+}
+
 function init_sharememo(){
+  $('#memo_area').perfectScrollbar({
+    wheelSpeed: 30
+  });
+
   for (var i = SHARE_MEMO_NUMBER; i > 1; i--){
     $("#share_memo_tab_top").after($('<li/>').addClass("share-memo-tab").attr("data-no",i));
     $("#share_memo_1").after($('<div/>').attr('id',"share_memo_" + i).attr("data-no",i).addClass("share-memo tab-pane"));
     $("#memo_number_option_top").after($('<option/>').attr('value',i).html(i));
   }
   $("#scroll_top").click(function(){
-    $('html,body').animate({ scrollTop: 0 }, 'fast');
+    $('#memo_area').animate({ scrollTop: 0 }, 'fast');
   });
 
   $("#share_zen").click(function(){
-    if ($("#memo_area").hasClass("span7")){
+    if ($("#memo_area").hasClass("memo-area")){
       $("#chat_area").fadeOut(function(){
-        $("#memo_area").removeClass("span7");
-        $("#memo_area").addClass("span11");
+        $("#memo_area").removeClass("memo-area span7");
+        $("#memo_area").addClass("memo-area-zen span11");
       });
     }else{
-      $("#memo_area").removeClass("span11");
-      $("#memo_area").addClass("span7");
+      $("#memo_area").removeClass("memo-area-zen span11");
+      $("#memo_area").addClass("memo-area span7");
       $("#chat_area").fadeIn();
     }
   });
@@ -95,8 +106,8 @@ function init_sharememo(){
       $('<span/>').addClass("text-writer label label-info")).append(
       $('<span/>').addClass("checkbox-count").css("display","none")).append(
       $('<textarea/>').addClass("code code-unselect").css("display","none").attr("placeholder", "Write here")).append(
-      $('<div/>').addClass("diff-view").css("display","none")).append(
-      $('<pre/>').addClass("text-base-style").append($('<div/>').addClass("code-out")));
+      $('<pre/>').addClass("text-base-style").append($('<div/>').addClass("code-out"))).append(
+      $('<div/>').addClass("diff-view").css("display","none"));
   });
 }
 
@@ -268,7 +279,7 @@ function init_websocket(){
     var index = $(this).closest(".index-list").find(".index-li").index(this);
     var $code_out = $(this).closest('.share-memo').find('.code-out');
     var pos = $code_out.find(":header").eq(index).offset().top;
-    $('html,body').animate({ scrollTop: pos - CODE_OUT_ADJUST_HEIGHT}, 'fast');
+    $('#memo_area').animate({ scrollTop: pos - CODE_OUT_ADJUST_HEIGHT}, 'fast');
     return true;
   });
 
@@ -323,7 +334,7 @@ function init_websocket(){
       $(this).keyup(); //call autofit
       // 編集モード時に選択した行位置を表示する
       $(this).caretLine(clicked_row);
-      $('html, body').scrollTop(clicked_row * 18 - CODE_ADJUST_HEIGHT);
+      $('#memo_area').scrollTop(clicked_row * 18 - CODE_ADJUST_HEIGHT);
     });
     $(this).parent().children('pre').hide();
     $(this).parent().children('.fix-text').show();
@@ -342,7 +353,8 @@ function init_websocket(){
     var row = $(this).caretLine();
     var $target_tr = $(this).parent().find('table tr').eq(row - 1);
     if ($target_tr.length > 0){
-      $('html,body').scrollTop($target_tr.offset().top - CODE_OUT_ADJUST_HEIGHT);
+      $('#memo_area').scrollTop(0);
+      $('#memo_area').scrollTop($target_tr.offset().top - CODE_OUT_ADJUST_HEIGHT);
     }
     socket.emit('add_history',{no: $(this).parent().data('no')});
 
