@@ -40,6 +40,11 @@ app.get('/', function(req, res) {
   res.render('index',{locals:{title_name:title_name}});
 });
 
+app.get('/bot_maker', function(req, res) {
+  console.log('/bot_maker');
+  res.render('bot_maker',{locals:{title_name:title_name}});
+});
+
 app.get('/mobile', function(req, res) {
   console.log('/mobile');
   res.render('index_mobile',{locals:{title_name:title_name}});
@@ -132,6 +137,25 @@ io.sockets.on('connection', function(client) {
           client.emit('latest_log',logs);
         });
       }
+    });
+  });
+
+  client.on('message_bot_maker', function(data) {
+    client_info.set_name(client, data.name);
+
+    data.date = util.getFullDate(new Date());
+
+    client.emit('list', client_info.ip_list());
+    client.broadcast.emit('list', client_info.ip_list());
+
+    client.emit('message_own', data);
+
+    // for bot
+    bots.action(data, function(reply){
+      setTimeout(function(){
+        reply.date = util.getFullDate(new Date());
+        client.emit('message_own', reply);
+      },reply.interval * 1000);
     });
   });
 
