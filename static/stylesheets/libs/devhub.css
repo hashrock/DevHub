@@ -58,7 +58,6 @@ body{
 }
 
 #chat_area{
-  height : 100%;
   position: absolute;
   top: 0;
   right: 0;
@@ -72,7 +71,6 @@ body{
 }
 
 .memo-area{
-  height : 100%;
   position: absolute;
   top: 0;
   right: 0;
@@ -111,17 +109,17 @@ body{
 }
 
 .viewport__right{
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-      -ms-flex: 1;
-          flex: 1;
+  -webkit-box-flex: 0.6;
+  -webkit-flex: 0.6;
+      -ms-flex: 0.6;
+          flex: 0.6;
   position: relative;
 }
 .viewport__left{
-  -webkit-box-flex: 1;
-  -webkit-flex: 1;
-      -ms-flex: 1;
-          flex: 1;
+  -webkit-box-flex: 0.4;
+  -webkit-flex: 0.4;
+      -ms-flex: 0.4;
+          flex: 0.4;
   position: relative;
 }
 
@@ -336,6 +334,7 @@ a:hover {
   border-radius: 4px;
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 }
+
 
 .code-out-base {
   background-color: #fff;
@@ -873,4 +872,37 @@ button.close {
 .text-date.label{
   margin: 3px 0px 0px 0px;
   display: inline-block;
+}
+
+/* Mobile */
+@media screen and (max-width: 768px){
+  .hidden-phone{
+    display: none;
+  }
+  .visible-phone{
+    display: block;
+  }
+  .text-date{
+    display: none;
+  }
+  .checkbox-count{
+    display: none;
+  }
+  .viewport{
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+  }
+  .flipsnap{
+    display: flex;
+    width: 200vw;
+    height: 100%;
+  }
+  .viewport__left{
+    flex: 1;
+  }
+  .viewport__right{
+    flex: 1;
+  }
 }

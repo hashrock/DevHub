@@ -2,7 +2,6 @@ var COOKIE_NAME = "dev_hub_name";
 var COOKIE_EXPIRES = 365;
 
 var socket = io.connect('/',{query: 'from=devhub'});
-var is_mobile = false;
 
 // Controllers
 var chatController = null;
@@ -11,12 +10,47 @@ var shareMemoController = null;
 // for favicon
 var faviconNumber = null;
 
+var flipsnap;
+
+function updateUI(){
+  var is_mobile = $(window).width() < 768;
+  if(flipsnap !== undefined){
+    flipsnap.refresh();
+    flipsnap.disableTouch = !is_mobile;
+    if(!is_mobile){
+      $(".flipsnap").css({transform: "none"});
+    }
+  }
+
+  if (!is_mobile){
+    $('body').addClass("perfect-scrollbar-body-style");
+
+    var scrollOption = {
+      wheelSpeed: 1,
+      useKeyboard: true,
+      suppressScrollX: true
+    };
+
+    $('#chat_area').addClass("perfect-scrollbar-style");
+    $('#chat_area').perfectScrollbar(scrollOption);
+    $('#memo_area').addClass("perfect-scrollbar-style");
+    $('#memo_area').perfectScrollbar(scrollOption);
+  }else{
+    // フリック用のサイズ調整
+    if(flipsnap === undefined){
+       flipsnap = Flipsnap('.flipsnap');
+    }
+    $('#share_memo_nav').hide();
+    $('#share_memo_tabbable').removeClass("tabs-left");
+    $('#share_memo_nav').removeClass("nav-tabs");
+    $('#share_memo_nav').addClass("nav-pills");
+    $('#share_memo_nav').show();
+  }
+}
+
+
 $(function() {
   init_websocket();
-
-  if ($(window).width() < 768){
-    is_mobile = true;
-  }
 
   faviconNumber = new FaviconNumber({
     focus_id: "message"
@@ -44,39 +78,10 @@ $(function() {
   // for smartphone
   // 本当は bootstrap-responsive のみやりたいが、perfectScrollbar の制御は
   // js側でやらないといけないので解像度で切り分ける
-  if (!is_mobile){
-    $('body').addClass("perfect-scrollbar-body-style");
-
-    var scrollOption = {
-      wheelSpeed: 1,
-      useKeyboard: true,
-      suppressScrollX: true
-    };
-
-    $('#chat_area').addClass("perfect-scrollbar-style");
-    $('#chat_area').perfectScrollbar(scrollOption);
-    $('#memo_area').addClass("perfect-scrollbar-style");
-    $('#memo_area').perfectScrollbar(scrollOption);
-  }else{
-    // モバイルの場合はフリックイベントでチャットとメモを切り替える
-    $('.hidden-phone').remove();
-    $('.visible-phone').show();
-    $('.text-date').remove();
-    $('.checkbox-count').remove();
-
-    // フリック用のサイズ調整
-    adjust_display_size_for_mobile();
-
-    $(window).resize(function(){
-      adjust_display_size_for_mobile();
-    });
-
-    $('#share_memo_nav').hide();
-    $('#share_memo_tabbable').removeClass("tabs-left");
-    $('#share_memo_nav').removeClass("nav-tabs");
-    $('#share_memo_nav').addClass("nav-pills");
-    $('#share_memo_nav').show();
-  }
+  updateUI();
+  $(window).resize(function(){
+    updateUI();
+  });  
 
   if ( $.cookie(COOKIE_NAME) == null && !is_mobile){
     setTimeout(function(){
@@ -99,17 +104,13 @@ $(function() {
   $("#memo_zen").click(function(){
     $(".navbar").fadeOut();
     $(".dummy-top-space").fadeOut();
-    $("#chat_area").hide();
-    $("#memo_area").removeClass("span7 memo-area");
-    $("#memo_area").addClass("span12 memo-area-zen");
+    $(".viewport__left").hide();
   });
 
   $("#chat_zen").click(function(){
     $(".navbar").fadeOut();
     $(".dummy-top-space").fadeOut();
-    $("#memo_area").hide();
-    $("#chat_area").removeClass("span5");
-    $("#chat_area").addClass("span12");
+    $(".viewport__right").hide();
   });
 
   // ショートカットキー
@@ -118,13 +119,8 @@ $(function() {
       $(".navbar").fadeIn();
       $(".dummy-top-space").fadeIn();
 
-      $("#memo_area").removeClass("span12 memo-area-zen");
-      $("#memo_area").addClass("span7 memo-area");
-      $("#chat_area").removeClass("span12");
-      $("#chat_area").addClass("span5");
-
-      $("#memo_area").fadeIn();
-      $("#chat_area").fadeIn();
+      $(".viewport__left").fadeIn();
+      $(".viewport__right").fadeIn();
     } else if (e.ctrlKey && e.ctrlKey == true ){
       /*
       if (e.keyCode == 73){ // Ctrl - i : focus chat form
@@ -150,16 +146,6 @@ $(function() {
   });
 });
 
-function adjust_display_size_for_mobile(){
-    // フリック用のサイズ調整
-    var window_width = $(window).width();
-    $('.viewport').css('width',window_width + 'px').css('overflow','hidden').css('padding',0);
-    $('.flipsnap').css('width',window_width * 2 + 'px');
-
-    chatController.setWidth(window_width);
-    shareMemoController.setWidth(window_width);
-    Flipsnap('.flipsnap').refresh();
-}
 
 function init_websocket(){
   socket.on('connect', function() {
